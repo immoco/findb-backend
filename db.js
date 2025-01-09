@@ -14,13 +14,6 @@ const pool = new Pool ({
       },
 });
 
-console.log(process.env.DB_user);
-console.log(process.env.DB_host);
-console.log(process.env.DB_password);
-console.log(process.env.DB_database);
-console.log(process.env.DB_port);
-console.log(process.env.DB_user);
-
 
 
 module.exports = {
