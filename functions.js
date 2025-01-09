@@ -85,7 +85,7 @@ async function insertquery(CategoryType, userName, amount, categoryName, date, d
 
 async function getdata(userName, CategoryType) {
     try {
-        const query = `SELECT * FROM ${CategoryType} WHERE Username = $1 ORDER BY DATE DESC`;
+        const query = `SELECT * FROM ${CategoryType} WHERE Username = $1`;
         const result = await db.query(query, [userName]);
 
         if (result.rows.length === 0) {
