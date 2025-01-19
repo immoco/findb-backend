@@ -4,8 +4,8 @@ const router = express.Router();
 const {addcategory} = require('../functions');
 
 router.post('/', async (req,res) =>{
-    const {categoryName, CategoryType} = req.body;
-    const result = await addcategory(categoryName, CategoryType)
+    const {userName, categoryName, CategoryType} = req.body;
+    const result = await addcategory(userName, categoryName, CategoryType)
 
     if (result.success) {
         res.status(200).json({ message: result.message });

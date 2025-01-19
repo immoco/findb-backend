@@ -7,25 +7,43 @@ function generateCustomID(userName, CategoryType) {
     return `${Name}${Ctype}${Timestamp}`;
 }
 
-async function addcategory(categoryName, CategoryType) {
+async function addcategory(userName, categoryName, CategoryType) {
+    const client = await db.connect();
     try {
-        const existingCategory = await db.query('SELECT CategoryName from categories where categoryName = $1', [categoryName]);
+        await client.query('BEGIN');
 
-        if(existingCategory.rowCount > 0) {
-            return {success: false, message: 'Category Already existed!'}
-        }
-
-        await db.query(
-            'Insert into Categories (categoryName, CategoryType) values ($1, $2)', 
-            [categoryName, CategoryType]
+        const existingUserCategory = await client.query(
+            'SELECT CategoryName FROM user_categories WHERE UserName = $1 AND CategoryName = $2',
+            [userName, categoryName]
         );
 
-        return {success: true, message: 'Category Added Successfully.'};
-    
-        } catch(error) {
-            console.log(error)
-            return {success: false, message: 'Error Adding Category'};
+        if (existingUserCategory.rowCount > 0) {
+            await client.query('ROLLBACK');
+            return { success: false, message: 'Category already exists for this user!' };
         }
+
+        const existingCategory = await client.query(
+            'SELECT CategoryName FROM categories WHERE CategoryName = $1',
+            [categoryName]
+        );
+
+        if (existingCategory.rowCount === 0) {
+            await client.query(
+                'INSERT INTO user_categories (UserName, CategoryName, CategoryType) VALUES ($1, $2, $3)',
+                [userName, categoryName, CategoryType]
+        );
+        }
+
+        await client.query('COMMIT');
+        return { success: true, message: 'Category added successfully.' };
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error(error);
+        return { success: false, message: 'Error adding category.' };
+    } finally {
+        client.release();
+    }
 }
 
 async function insertquery(CategoryType, userName, amount, categoryName, date, description, status) {
@@ -193,7 +211,7 @@ async function updatequery(userName, CategoryType, entryid, amount, categoryName
     }
 }
 
-async function getMonthlyData(data) {
+function getMonthlyData(data) {
     const monthMap = new Map();
     const monthNames = [
         "January", "February", "March", "April", "May", "June",

@@ -3,18 +3,29 @@ const router = express.Router();
 const db = require('../db')
 const {getdata, deletequery, updatequery, getMonthlyData} = require('../functions')
 
-router.get('/:CategoryType', async (req,res) => {
-    const {userName} = req.query;
-    const {CategoryType} = req.params;
+router.get('/:CategoryType', async (req, res) => {
+    const { userName } = req.query;
+    const { CategoryType } = req.params;
 
-    const result = await getdata(userName, CategoryType)
+    try {
+        let result;
+        if (CategoryType === "categories") {
+            result = await db.query(`SELECT * FROM categories`);
+            res.json({ success: true, rows: result.rows });
+        } else {
+            result = await getdata(userName, CategoryType);
 
-    if (result.success){
-        res.json(result.rows)
-    }else{
-        res.status(500).json({message: result.message});
+            if (result.success) {
+                res.json(result.rows);
+            } else {
+                res.status(404).json({ message: result.message });
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-})
+});
 
 router.get('/:CategoryType/advanced', async (req, res) => {
     const {userName, phase} = req.query;
@@ -30,8 +41,8 @@ router.get('/:CategoryType/advanced', async (req, res) => {
         let Barchart;
         switch (phase) {
             case 'past':
-                const IncomeBarchart = await getMonthlyData(IncomeData.rows)
-                const ExpenseBarchart = await getMonthlyData(ExpenseData.rows)
+                const IncomeBarchart = getMonthlyData(IncomeData.rows)
+                const ExpenseBarchart = getMonthlyData(ExpenseData.rows)
                 Barchart = {
                     income: IncomeBarchart,
                     expense: ExpenseBarchart
