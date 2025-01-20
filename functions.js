@@ -29,9 +29,14 @@ async function addcategory(userName, categoryName, CategoryType) {
 
         if (existingCategory.rowCount === 0) {
             await client.query(
+                'INSERT INTO categories (CategoryName, CategoryType) VALUES ($1, $2)',
+                [categoryName, CategoryType],
+            );
+
+            await client.query(
                 'INSERT INTO user_categories (UserName, CategoryName, CategoryType) VALUES ($1, $2, $3)',
                 [userName, categoryName, CategoryType]
-        );
+            );
         }
 
         await client.query('COMMIT');
@@ -142,7 +147,7 @@ async function deletequery(userName, CategoryType, entryid, amount, categoryName
         }
 
         else {
-            const reserve_query = `Delete FROM wealth_reserve WHERE Username = $1 and EntryID = $2`
+            const reserve_query = `Delete FROM reserve WHERE Username = $1 and EntryID = $2`
             const reserve_queryParams = [userName, entryid]
 
             const result = await db.query(reserve_query, reserve_queryParams)

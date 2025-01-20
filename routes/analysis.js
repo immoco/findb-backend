@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db')
 const {getdata, deletequery, updatequery, getMonthlyData} = require('../functions')
+const {getPaginatedData} = require('../getPaginatedData')
 
 router.get('/:CategoryType', async (req, res) => {
-    const { userName } = req.query;
+    const { userName, page } = req.query;
     const { CategoryType } = req.params;
 
     try {
@@ -12,7 +13,25 @@ router.get('/:CategoryType', async (req, res) => {
         if (CategoryType === "categories") {
             result = await db.query(`SELECT * FROM categories`);
             res.json({ success: true, rows: result.rows });
-        } else {
+        }
+        
+        // else if (CategoryType === "Income" || CategoryType === "Expense") {
+        //     try {
+        //         const limit = 15;
+        //         const result = await getPaginatedData(userName, CategoryType, page, limit);
+                
+        //         if (result.success) {
+        //             res.json({ success: true, rows: result.rows });
+        //         } else {
+        //             res.status(404).json({ success: false, message: result.message });
+        //         }
+        //     } catch (error) {
+        //         console.error(error);
+        //         res.status(500).json({ success: false, message: 'Internal Server Error' });
+        //     }
+        // }
+        
+        else {
             result = await getdata(userName, CategoryType);
 
             if (result.success) {
